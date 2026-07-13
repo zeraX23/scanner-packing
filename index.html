@@ -219,36 +219,64 @@
 
         // Kamera baru akan menyala setelah tombol dipencet
         btnStart.addEventListener("click", function() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
-                video.srcObject = stream;
-                video.setAttribute("playsinline", true);
-                video.play();
-                requestAnimationFrame(scanBarcode);
+    // Menambahkan request ideal 60fps ke kamera HP
+    navigator.mediaDevices.getUserMedia({ 
+        video: { 
+            facingMode: "environment",
+            frameRate: { ideal: 60, min: 30 } 
+        } 
+    }).then(function(stream) {
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true);
+        video.play();
+        requestAnimationFrame(scanBarcode);
 
-                btnStart.style.display = "none"; // Sembunyikan tombol setelah ditekan
-                scanOverlay.style.display = "block"; // Tampilkan garis laser
-                
-                statusDiv.innerHTML = "🟢 SIAP: Arahkan resi ke kamera";
-                statusDiv.className = "status-ready";
+        btnStart.style.display = "none";
+        scanOverlay.style.display = "block";
+        
+        statusDiv.innerHTML = "🟢 SIAP: Arahkan resi ke kamera";
+        statusDiv.className = "status-ready";
 
-                // Setup Perekam Video
-                mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-                mediaRecorder.ondataavailable = function(e) {
-                    if (e.data.size > 0) recordedChunks.push(e.data);
-                };
-                mediaRecorder.onstop = function() {
-                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                    uploadKeTelegram(blob, resiAktif);
-                    recordedChunks = []; // Bersihkan memori
-                };
-            }).catch(function(err) {
-                alert("Gagal mengakses kamera! Pastikan browser diizinkan pakai kamera.");
-                console.error(err);
-            });
-        });
+        // Setup Perekam Video
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        mediaRecorder.ondataavailable = function(e) {
+            if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+        mediaRecorder.onstop = function() {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            uploadKeTelegram(blob, resiAktif);
+            recordedChunks = [];
+        };
+    }).catch(function(err) {
+        alert("Gagal mengakses kamera! Pastikan browser diizinkan pakai kamera.");
+        console.error(err);
+    });
+});
 
         // Fungsi membaca frame kamera secara terus-menerus
         function scanBarcode() {
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvasElement.height = video.videoHeight;
+        canvasElement.width = video.videoWidth;
+        canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+        
+        const waktuSekarang = Date.now();
+        
+        // OPTIMASI: Hanya jalankan jsQR setiap 250ms (4 kali sedetik), bukan 60 kali sedetik!
+        if (waktuSekarang - terakhirDiproses > 250) {
+            terakhirDiproses = waktuSekarang;
+            
+            var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+            var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+
+            if (code) {
+                prosesHasilScan(code.code); // Gunakan code.data atau sesuaikan dengan jsQR Anda
+            }
+        }
+    }
+    requestAnimationFrame(scanBarcode);
+}
+
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 canvasElement.height = video.videoHeight;
                 canvasElement.width = video.videoWidth;
