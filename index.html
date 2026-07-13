@@ -3,52 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Packing Scanner Pro</title>
+    <title>Scanner Packing Telegram</title>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        * { box-sizing: border-box; touch-action: manipulation; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-               text-align: center; background-color: #f0f2f5; margin: 0; padding: 15px; height: 100vh; display: flex; flex-direction: column; }
+        :root {
+            --primary: #1d4ed8;
+            --primary-hover: #1e3a8a;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 15px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 400px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        /* Styling Header & Logo */
+        header {
+            margin-bottom: 20px;
+        }
         
-        h2 { font-size: 20px; color: #1a73e8; margin-bottom: 10px; }
-        
-        #video-container { width: 100%; max-width: 400px; aspect-ratio: 16/9; background: #000; 
-                           margin: 0 auto 15px; border-radius: 15px; overflow: hidden; border: 4px solid #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        #video { width: 100%; height: 100%; object-fit: cover; }
-        
-        #status { font-weight: 700; font-size: 16px; padding: 20px; border-radius: 12px; 
-                  background: #fff; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        
-        #btn-start { width: 100%; max-width: 400px; padding: 20px; font-size: 18px; font-weight: bold; 
-                     background: #1a73e8; color: white; border: none; border-radius: 12px; cursor: pointer; }
-        
-        .recording { background: #dc3545 !important; color: white !important; animation: blink 1.5s infinite; }
-        .uploading { background: #ffc107 !important; color: #000 !important; }
-        
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        .logo {
+            width: 80px;
+            height: auto;
+            margin-bottom: 10px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 { 
+            font-size: 20px; 
+            color: var(--text-main); 
+            margin: 0 0 5px 0;
+            font-weight: 700;
+        }
+
+        p.subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        /* Styling Video Container Modern dengan Animasi Laser */
+        #video-wrapper {
+            position: relative;
+            margin: 20px auto;
+            border-radius: 16px;
+            overflow: hidden;
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #000;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1) inset;
+        }
+
+        #video { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover;
+            display: block; 
+        }
+
+        .scan-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            pointer-events: none;
+            display: none; /* Muncul saat kamera aktif */
+        }
+
+        .laser {
+            position: absolute;
+            width: 90%;
+            height: 2px;
+            background-color: #ef4444;
+            left: 5%;
+            top: 50%;
+            box-shadow: 0 0 10px #ef4444;
+            animation: scan-anim 2s infinite linear;
+            pointer-events: none;
+        }
+
+        @keyframes scan-anim {
+            0% { top: 10%; }
+            50% { top: 90%; }
+            100% { top: 10%; }
+        }
+
+        /* Styling Notifikasi Status */
+        #status { 
+            margin-top: 15px; 
+            font-weight: 600; 
+            font-size: 14px; 
+            padding: 16px; 
+            border-radius: 12px; 
+            transition: all 0.3s ease;
+            line-height: 1.5;
+        }
+
+        .status-default { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+        .status-ready { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .status-recording { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .status-uploading { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+        .status-error { background: #fecdd3; color: #9f1239; border: 1px solid #fda4af; }
+
+        /* Animasi kedip saat merekam */
+        .pulse { animation: pulse-anim 1.5s infinite; }
+        @keyframes pulse-anim {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* Styling Tombol */
+        button { 
+            margin-top: 15px; 
+            width: 100%;
+            padding: 16px; 
+            font-size: 16px; 
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover)); 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3);
+            transition: transform 0.1s, box-shadow 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button:active { 
+            transform: scale(0.98); 
+            box-shadow: 0 2px 10px rgba(29, 78, 216, 0.2);
+        }
+
+        button svg { width: 20px; height: 20px; fill: currentColor; }
     </style>
 </head>
 <body>
 
-    <h2>📦 Packing Scan Pro</h2>
-    
-    <div id="video-container">
-        <video id="video" playsinline muted></video>
+    <div class="app-container">
+        <header>
+            <img src="1000145444.png" alt="Logo Scan Resi" class="logo">
+            <h2>Scanner Packing</h2>
+            <p class="subtitle">Sistem Rekam Resi Otomatis</p>
+        </header>
+        
+        <div id="video-wrapper">
+            <video id="video" playsinline muted></video>
+            <div class="scan-overlay" id="scan-overlay">
+                <div class="laser"></div>
+            </div>
+        </div>
+        
+        <button id="btn-start">
+            <svg xmlns="http://www.000/svg" viewBox="0 0 24 24"><path d="M4 4h3l2-2h6l2 2h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg>
+            Aktifkan Kamera
+        </button>
+        
+        <canvas id="canvas" hidden></canvas>
+        
+        <div id="status" class="status-default">👇 Pencet tombol di atas dulu 👇</div>
     </div>
-    
-    <div id="status">Pencet tombol untuk mulai</div>
-    <button id="btn-start">📸 AKTIFKAN KAMERA</button>
-    <canvas id="canvas" hidden></canvas>
 
     <script>
+        // KONFIGURASI BOT (TIDAK DIUBAH)
         const BOT_TOKEN = '8894813796:AAHlnFbe9dsor7e8UodVDOi7LzXyBAzcbzs'; 
-        const CHAT_ID = '-5400260224';
+        const CHAT_ID = '-5400260224'; 
 
         const video = document.getElementById("video");
         const canvasElement = document.getElementById("canvas");
         const canvas = canvasElement.getContext("2d", { willReadFrequently: true });
         const statusDiv = document.getElementById("status");
         const btnStart = document.getElementById("btn-start");
+        const scanOverlay = document.getElementById("scan-overlay");
 
         let isRecording = false;
         let resiAktif = "";
@@ -56,64 +211,146 @@
         let recordedChunks = [];
         let lastScanTime = 0;
 
+        // Kamera baru akan menyala setelah tombol dipencet
         btnStart.addEventListener("click", function() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
                 video.srcObject = stream;
+                video.setAttribute("playsinline", true);
                 video.play();
                 requestAnimationFrame(scanBarcode);
-                btnStart.style.display = "none";
-                updateStatus("🟢 SIAP: Arahkan resi ke kamera", "");
 
+                btnStart.style.display = "none"; // Sembunyikan tombol setelah ditekan
+                scanOverlay.style.display = "block"; // Tampilkan garis laser
+                
+                statusDiv.innerHTML = "🟢 SIAP: Arahkan resi ke kamera";
+                statusDiv.className = "status-ready";
+
+                // Setup Perekam Video
                 mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-                mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    uploadKeTelegram(new Blob(recordedChunks, { type: 'video/webm' }), resiAktif);
-                    recordedChunks = [];
+                mediaRecorder.ondataavailable = function(e) {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
                 };
-            }).catch(err => alert("Gagal akses kamera!"));
+                mediaRecorder.onstop = function() {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    uploadKeTelegram(blob, resiAktif);
+                    recordedChunks = []; // Bersihkan memori
+                };
+            }).catch(function(err) {
+                alert("Gagal mengakses kamera! Pastikan browser diizinkan pakai kamera.");
+                console.error(err);
+            });
         });
 
-        function updateStatus(text, className) {
-            statusDiv.innerHTML = text;
-            statusDiv.className = className;
-        }
-
+        // Fungsi membaca frame kamera secara terus-menerus
         function scanBarcode() {
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvasElement.height = video.videoHeight; canvasElement.width = video.videoWidth;
-                canvas.drawImage(video, 0, 0);
-                const code = jsQR(canvas.getImageData(0,0,canvasElement.width,canvasElement.height).data, canvasElement.width, canvasElement.height);
-                if (code) prosesHasilScan(code.data);
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                
+                var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+
+                if (code) {
+                    prosesHasilScan(code.data);
+                }
             }
             requestAnimationFrame(scanBarcode);
         }
 
         function prosesHasilScan(data) {
-            if (Date.now() - lastScanTime < 3000) return;
+            const waktuSekarang = Date.now();
+            if (waktuSekarang - lastScanTime < 3000) return; // Jeda 3 detik agar tidak double-scan
+
             if (!isRecording) {
-                resiAktif = data; isRecording = true; lastScanTime = Date.now();
+                resiAktif = data;
+                isRecording = true;
+                lastScanTime = waktuSekarang;
+                
                 mediaRecorder.start();
-                updateStatus("🔴 MEREKAM: " + resiAktif, "recording");
-            } else if (data === resiAktif) {
-                isRecording = false; lastScanTime = Date.now();
-                mediaRecorder.stop();
-                updateStatus("⏳ Mengunggah...", "uploading");
+                
+                statusDiv.innerHTML = `🔴 MEREKAM RESI:<br><strong style="font-size:16px">${resiAktif}</strong>`;
+                statusDiv.className = "status-recording pulse";
+                scanOverlay.style.borderColor = "#ef4444"; // Ubah border jadi merah saat merekam
+            } else {
+                if (data === resiAktif) {
+                    isRecording = false;
+                    lastScanTime = waktuSekarang;
+                    
+                    mediaRecorder.stop();
+                    
+                    statusDiv.innerHTML = "⏳ Mengunggah video...<br><span style='font-weight:400; font-size:12px'>Mohon tunggu sejenak.</span>";
+                    statusDiv.className = "status-uploading";
+                    scanOverlay.style.borderColor = "rgba(255, 255, 255, 0.2)"; // Kembalikan border
+                } else {
+                    alert("⚠️ PERINGATAN: Resi berbeda! Arahkan resi " + resiAktif + " untuk berhenti merekam.");
+                    lastScanTime = waktuSekarang;
+                }
             }
         }
 
+        // --- FUNGSI PENDETEKSI MARKETPLACE ---
+        function deteksiMarketplace(resi) {
+            const resiUpper = resi.toUpperCase();
+            
+            // Cek awalan resi Shopee
+            if (resiUpper.startsWith("SPX") || resiUpper.startsWith("JP") || resiUpper.startsWith("ID")) {
+                return "🟠 Shopee";
+            } 
+            // Cek awalan resi TikTok / Tokopedia (termasuk JX dan JY)
+            else if (resiUpper.startsWith("JX") || resiUpper.startsWith("JY")) {
+                return "⚫ TikTok / 🟢 Tokopedia";
+            } 
+            // Jika resi tidak dikenali
+            else {
+                return "⚪ Umum / Lainnya";
+            }
+        }
+        // -------------------------------------
+
         function uploadKeTelegram(blob, resi) {
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`;
+            
+            // Mengambil waktu saat ini
             const now = new Date();
-            const waktu = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+            const namaHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][now.getDay()];
+            const tanggal = String(now.getDate()).padStart(2, '0');
+            const namaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][now.getMonth()];
+            const tahun = now.getFullYear();
+            const jam = String(now.getHours()).padStart(2, '0');
+            const menit = String(now.getMinutes()).padStart(2, '0');
+
+            const waktuDetail = `${namaHari}, ${tanggal} ${namaBulan} ${tahun} | ${jam}:${menit}`;
+            const asalMarketplace = deteksiMarketplace(resi);
+
             const formData = new FormData();
             formData.append('chat_id', CHAT_ID);
-            formData.append('caption', `📦 Packing: ${resi}\n🛒 ${resi.startsWith("JX") || resi.startsWith("JY") ? "TikTok/Tokopedia" : "Shopee"}\n🕒 ${waktu}`);
-            formData.append('video', blob, `resi_${resi}.webm`);
+            
+            // Format Caption Baru
+            const captionTeks = `📦 Bukti Packing\n🛒 Asal: ${asalMarketplace}\n🔖 Resi: ${resi}\n🕒 Waktu: ${waktuDetail}`;
+            
+            formData.append('caption', captionTeks);
+            formData.append('video', blob, `packing_${resi}.webm`);
 
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: formData })
-            .then(res => res.json())
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
             .then(data => {
-                if (data.ok) updateStatus("✅ BERHASIL!", "");
-                else updateStatus("❌ Gagal: " + data.description, "");
+                if (data.ok) {
+                    statusDiv.innerHTML = "✅ BERHASIL DIUNGGAH!<br>🟢 SIAP: Arahkan resi selanjutnya";
+                    statusDiv.className = "status-ready";
+                } else {
+                    alert("❌ Gagal mengunggah: " + data.description);
+                    statusDiv.innerHTML = "❌ Gagal mengunggah. Coba lagi.";
+                    statusDiv.className = "status-error";
+                }
+            })
+            .catch(error => {
+                alert("❌ Terjadi kesalahan jaringan.");
+                statusDiv.innerHTML = "❌ Error Jaringan.";
+                statusDiv.className = "status-error";
             });
         }
     </script>
