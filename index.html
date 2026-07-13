@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+        <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1d4ed8">
+    <link rel="apple-touch-icon" href="1000145444.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Scanner Packing Telegram</title>
@@ -190,7 +196,7 @@
         
         <canvas id="canvas" hidden></canvas>
         
-        <div id="status" class="status-default">👇 Pencet tombol di atas dulu 👇</div>
+        <div id="status" class="status-default">⬆️ Pencet tombol di atas dulu ⬆️</div>
     </div>
 
     <script>
@@ -295,11 +301,11 @@
             
             // Cek awalan resi Shopee
             if (resiUpper.startsWith("SPX") || resiUpper.startsWith("JP") || resiUpper.startsWith("ID")) {
-                return "🟠 Shopee";
+                return "Shopee";
             } 
             // Cek awalan resi TikTok / Tokopedia (termasuk JX dan JY)
             else if (resiUpper.startsWith("JX") || resiUpper.startsWith("JY")) {
-                return "⚫ TikTok / 🟢 Tokopedia";
+                return "TikTokShop by Tokopedia";
             } 
             // Jika resi tidak dikenali
             else {
@@ -354,5 +360,15 @@
             });
         }
     </script>
+        <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('PWA Siap!'))
+                .catch(err => console.log('PWA Error:', err));
+            });
+        }
+    </script>
+
 </body>
 </html>
